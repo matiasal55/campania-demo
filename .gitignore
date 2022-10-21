@@ -1,0 +1,9 @@
+**/build
+**/.idea
+**/.vs
+**/.vsc
+**/**/bin
+**/**/obj
+**/node_modules
+**/**/appsettings.json
+**/.env
