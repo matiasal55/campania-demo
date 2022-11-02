@@ -44,7 +44,7 @@
 // require('dotenv').config();
 // const { MNEMONIC, PROJECT_ID } = process.env;
 
-// const HDWalletProvider = require('@truffle/hdwallet-provider');
+const HDWalletProvider = require("@truffle/hdwallet-provider");
 
 module.exports = {
 	/**
@@ -82,13 +82,32 @@ module.exports = {
 		//
 		// Useful for deploying to a public network.
 		// Note: It's important to wrap the provider as a function to ensure truffle uses a new provider every time.
-		// goerli: {
-		//   provider: () => new HDWalletProvider(MNEMONIC, `https://goerli.infura.io/v3/${PROJECT_ID}`),
-		//   network_id: 5,       // Goerli's id
-		//   confirmations: 2,    // # of confirmations to wait between deployments. (default: 0)
-		//   timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
-		//   skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
-		// },
+		goerli: {
+			provider: () =>
+				new HDWalletProvider(
+					"5e550a28083b1592efcece4d8cf6624f3ae335056fe9b7a3789e79557947766d",
+					`wss://eth-goerli.g.alchemy.com/v2/ao6rzLtwKaxRDgaT8TNMaKco9TfRsV-p`
+				),
+			network_id: 5, // Goerli's id
+			confirmations: 2, // # of confirmations to wait between deployments. (default: 0)
+			timeoutBlocks: 200, // # of blocks before a deployment times out  (minimum/default: 50)
+			skipDryRun: true, // Skip dry run before migrations? (default: false for public nets )
+			networkCheckTimeout: 1000000,
+		},
+		matic: {
+			provider: () =>
+				new HDWalletProvider(
+					"5e550a28083b1592efcece4d8cf6624f3ae335056fe9b7a3789e79557947766d",
+					`wss://polygon-mainnet.g.alchemy.com/v2/eD3FcLtgJOpTEAv4mRT1XmHQj7oDqCRe`
+				),
+			network_id: 137,
+			confirmations: 2,
+			timeoutBlocks: 200,
+			skipDryRun: true,
+			networkCheckTimeout: 1000000,
+			gasPrice: 35000000000,
+			//gas: 28737151,
+		},
 		//
 		// Useful for private networks
 		// private: {
@@ -116,6 +135,10 @@ module.exports = {
 			//  evmVersion: "byzantium"
 			// }
 		},
+	},
+	plugins: ["truffle-plugin-verify"],
+	api_keys: {
+		etherscan: "3JPQJJKBKHE9D17J4FWQIW2CGAW5EUBTS3",
 	},
 
 	// Truffle DB is currently disabled by default; to enable it, change enabled:

@@ -1,7 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.5.0 <0.9.0;
 
-contract Campania {
+contract DonacionesContrato {
+
+    struct ProductoDonado {
+        string descripcionProducto;
+        uint cantidad;
+    }
+
+    enum EstadoDonacion {
+        PROCESADO,
+        RESERVADO,
+        TRASLADO,
+        ENTREGADO
+    }
+    
     struct DonacionRequest {
         uint idDonacion;
         uint idOrganizacion;
@@ -9,8 +22,7 @@ contract Campania {
         uint idCampania;
         string campania;
         uint idDonador;
-        string descripcionProducto;
-        uint cantidad;
+        ProductoDonado[] productosDonados;
     }
 
     struct Donacion {
@@ -20,20 +32,18 @@ contract Campania {
         uint idCampania;
         string campania;
         uint idDonador;
-        string descripcionProducto;
-        uint cantidad;
+        ProductoDonado[] productosDonados;
         uint timestamp;
-        bool entregado;
+        EstadoDonacion estado;
     }
 
     struct DonacionResponse {
         uint idDonacion;
         string organizacion;
         string campania;
-        string descripcionProducto;
-        uint cantidad;
+        ProductoDonado[] productosDonados;
         uint timestamp;
-        bool entregado;
+        EstadoDonacion estado;
     }
 
     Donacion[] private donaciones;
@@ -53,7 +63,7 @@ contract Campania {
     }
 
     function crearResponse(Donacion memory donacion) private pure returns (DonacionResponse memory response) {
-        response = DonacionResponse(donacion.idDonacion, donacion.organizacion, donacion.campania, donacion.descripcionProducto, donacion.cantidad, donacion.timestamp, donacion.entregado);
+        response = DonacionResponse(donacion.idDonacion, donacion.organizacion, donacion.campania, donacion.productosDonados, donacion.timestamp, donacion.estado);
     }
 
     function chequearExistencia(DonacionRequest memory donacion) private view {
@@ -67,8 +77,21 @@ contract Campania {
     function crearDonacion(DonacionRequest memory request) public chequearModificador {
         chequearExistencia(request);
         uint timestamp = block.timestamp;
-        Donacion memory nuevaDonacion = Donacion(request.idDonacion, request.idOrganizacion, request.organizacion, request.idCampania, request.campania, request.idDonador, request.descripcionProducto, request.cantidad, timestamp, false);
-        donaciones.push(nuevaDonacion);
+        Donacion storage nuevaDonacion = donaciones.push();
+
+        nuevaDonacion.idDonacion = request.idDonacion;
+        nuevaDonacion.idOrganizacion = request.idOrganizacion;
+        nuevaDonacion.organizacion = request.organizacion;
+        nuevaDonacion.idCampania = request.idCampania;
+        nuevaDonacion.campania = request.campania;
+        nuevaDonacion.idDonador = request.idDonador;
+        nuevaDonacion.timestamp = timestamp;
+        nuevaDonacion.estado = EstadoDonacion.PROCESADO;
+
+        for (uint256 i = 0; i < request.productosDonados.length; i++) {
+            nuevaDonacion.productosDonados.push(request.productosDonados[i]);
+        }
+
         DonacionResponse memory response = crearResponse(nuevaDonacion);
         emit datosDonacion(response);
     }

@@ -1,5 +1,5 @@
-const Campania = artifacts.require("Campania");
+const DonacionesContrato = artifacts.require("DonacionesContrato");
 
 module.exports = function (deployer) {
-	deployer.deploy(Campania);
+	deployer.deploy(DonacionesContrato);
 };
