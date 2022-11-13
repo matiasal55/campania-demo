@@ -57,6 +57,15 @@ contract DonacionesContrato {
         uint timestamp;
     }
 
+    event datosDonacion (
+        DonacionResponse response
+    );
+
+    modifier chequearModificador() {
+        require(owner == msg.sender, "No esta autorizado a modificar los datos dentro del contrato");
+        _;
+    }
+
     Donacion[] private donaciones;
     DonacionHistorico[] private donacionesHistorico;
     address private owner;
@@ -68,15 +77,6 @@ contract DonacionesContrato {
         estados[EstadoDonacion.RESERVADO] = "RESERVADO";
         estados[EstadoDonacion.TRASLADO] = "TRASLADO";
         estados[EstadoDonacion.ENTREGADO] = "ENTREGADO";
-    }
-
-    event datosDonacion (
-        DonacionResponse response
-    );
-
-    modifier chequearModificador() {
-        require(owner == msg.sender, "No esta autorizado a modificar los datos dentro del contrato");
-        _;
     }
 
     function crearResponse(Donacion memory donacion) private view returns (DonacionResponse memory response) {
