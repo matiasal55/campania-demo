@@ -43,14 +43,24 @@ contract DonacionesContrato {
         string campania;
         ProductoDonado[] productosDonados;
         uint timestamp;
-        EstadoDonacion estado;
+        string estado;
+    }
+
+    struct DonacionConIndex {
+        Donacion donacion;
+        uint index;
     }
 
     Donacion[] private donaciones;
     address private owner;
+    mapping (EstadoDonacion => string) estados;
 
     constructor(){
         owner = msg.sender;
+        estados[EstadoDonacion.PROCESADO] = "PROCESADO";
+        estados[EstadoDonacion.RESERVADO] = "RESERVADO";
+        estados[EstadoDonacion.TRASLADO] = "TRASLADO";
+        estados[EstadoDonacion.ENTREGADO] = "ENTREGADO";
     }
 
     event datosDonacion (
@@ -62,8 +72,8 @@ contract DonacionesContrato {
         _;
     }
 
-    function crearResponse(Donacion memory donacion) private pure returns (DonacionResponse memory response) {
-        response = DonacionResponse(donacion.idDonacion, donacion.organizacion, donacion.campania, donacion.productosDonados, donacion.timestamp, donacion.estado);
+    function crearResponse(Donacion memory donacion) private view returns (DonacionResponse memory response) {
+        response = DonacionResponse(donacion.idDonacion, donacion.organizacion, donacion.campania, donacion.productosDonados, donacion.timestamp, estados[donacion.estado]);
     }
 
     function chequearExistencia(DonacionRequest memory donacion) private view {
@@ -133,5 +143,32 @@ contract DonacionesContrato {
         }
 
         return lista;
+    }
+
+    function traerDatosDeDonacion(uint idDonacion) private view returns (DonacionConIndex memory){
+        for (uint256 i = 0; i < donaciones.length; i++) {
+            if(donaciones[i].idDonacion == idDonacion){
+                return DonacionConIndex(donaciones[i], i);
+            }
+        }
+
+        revert("No se encontro la donacion con el id ingresado");
+    }
+
+    function confirmarProductosEnDonaciones(uint[] memory donacionesId) public {
+        DonacionConIndex[] memory listaDonaciones = new DonacionConIndex[](donaciones.length);
+        uint contador = 0;
+
+        for (uint256 i = 0; i < donacionesId.length; i++) {
+            DonacionConIndex memory datos = traerDatosDeDonacion(donacionesId[i]);
+            listaDonaciones[contador] = datos;
+            contador++;
+        }
+
+        for (uint256 i = 0; i < contador; i++) {
+            if(donaciones[listaDonaciones[i].index].estado == EstadoDonacion.PROCESADO){
+                donaciones[listaDonaciones[i].index].estado = EstadoDonacion.RESERVADO;
+            }
+        }
     }
 }
