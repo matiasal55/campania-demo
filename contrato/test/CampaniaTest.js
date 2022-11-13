@@ -57,7 +57,7 @@ contract("DonacionesContrato", () => {
 		assert.notEqual(result1.receipt.transactionHash, null);
 		assert.equal(donacionresult1.productosDonados.length, 1);
 		assert.equal(donacionresult1.organizacion, "Caritas");
-		assert.equal(donacionresult1.estado, 0);
+		assert.equal(donacionresult1.estado, "PROCESADO");
 
 		const result2 = await this.donacionesContrato.crearDonacion(donacion2);
 		const donacionresult2 = result2.logs[0].args.response;
@@ -101,4 +101,8 @@ contract("DonacionesContrato", () => {
 			"No se encontro la donacion con el id ingresado"
 		);
 	});
+
+	// it('Modificar el estado de las donaciones a Reservado', () => {
+
+	// });
 });
