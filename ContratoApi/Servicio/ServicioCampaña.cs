@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Threading.Tasks;
 using Donaciones.Contracts.DonacionesContrato;
 using Donaciones.Contracts.DonacionesContrato.ContractDefinition;
@@ -56,6 +57,36 @@ namespace Servicio
         public async Task<List<DonacionResponse>> ConsultarDonacionesPorOrganizacion(int idOrganizacion)
         {
             return _contrato.ConsultarDonacionesPorOrganizacionQueryAsync(idOrganizacion).Result.ReturnValue1;
+        }
+
+        public async Task ConfirmarReservaDeProductosDeDonaciones(EstadoDonacionReq donaciones)
+        {
+            var receipt =
+                await _contrato.ConfirmarReservaProductosEnDonacionesRequestAndWaitForReceiptAsync(
+                    new ConfirmarReservaProductosEnDonacionesFunction()
+                    {
+                        DonacionesId = donaciones.DonacionesId
+                    });
+        }
+
+        public async Task ConfirmarTrasladoDeProductosDeDonaciones(EstadoDonacionReq donaciones)
+        {
+            var receipt =
+                await _contrato.ConfirmarTrasladoProductosEnDonacionesRequestAndWaitForReceiptAsync(
+                    new ConfirmarTrasladoProductosEnDonacionesFunction()
+                    {
+                        DonacionesId = donaciones.DonacionesId
+                    });
+        }
+
+        public async Task ConfirmarEntregaDeProductosDeDonaciones(EstadoDonacionReq donaciones)
+        {
+            var receipt =
+                await _contrato.ConfirmarEntregaProductosEnDonacionesRequestAndWaitForReceiptAsync(
+                    new ConfirmarEntregaProductosEnDonacionesFunction()
+                    {
+                        DonacionesId = donaciones.DonacionesId
+                    });
         }
     }
 }

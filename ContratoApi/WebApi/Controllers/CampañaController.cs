@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Donaciones.Contracts.DonacionesContrato.ContractDefinition;
 using Microsoft.AspNetCore.Mvc;
 using Servicio;
+using Servicio.Models;
 
 namespace WebApi.Controllers
 {
@@ -42,6 +43,27 @@ namespace WebApi.Controllers
         public async Task<List<DonacionResponse>> ConsultarDonacionesPorOrganizacion(int idOrganizacion)
         {
             return await _servicioCampaña.ConsultarDonacionesPorOrganizacion(idOrganizacion);
+        }
+
+        [HttpPost("vendedor/reservar")]
+        public async Task<IActionResult> ConfirmarReservaDeProductosDeDonaciones(EstadoDonacionReq donaciones)
+        {
+            await _servicioCampaña.ConfirmarReservaDeProductosDeDonaciones(donaciones);
+            return Ok();
+        }
+        
+        [HttpPost("vendedor/trasladar")]
+        public async Task<IActionResult> ConfirmarTrasladoDeProductosDeDonaciones(EstadoDonacionReq donaciones)
+        {
+            await _servicioCampaña.ConfirmarTrasladoDeProductosDeDonaciones(donaciones);
+            return Ok();
+        }
+        
+        [HttpPost("vendedor/entregar")]
+        public async Task<IActionResult> ConfirmarEntregaDeProductosDeDonaciones(EstadoDonacionReq donaciones)
+        {
+            await _servicioCampaña.ConfirmarEntregaDeProductosDeDonaciones(donaciones);
+            return Ok();
         }
     }
 }
