@@ -126,6 +126,14 @@ contract DonacionesContrato {
         return lista;
     }
 
+    function consultarHistorialDonaciones() public view returns (DonacionHistorico[] memory){
+        DonacionHistorico[] memory lista = new DonacionHistorico[](donacionesHistorico.length);
+        for (uint256 i = 0; i < donacionesHistorico.length; i++) {
+            lista[i] = donacionesHistorico[i];
+        }
+        return lista;
+    }
+
     function consultarDonacionesPorId(uint idDonacion) public view returns (DonacionResponse memory){
         for (uint256 i = 0; i < donaciones.length; i++) {
             if(donaciones[i].idDonacion == idDonacion){
@@ -188,7 +196,7 @@ contract DonacionesContrato {
 
         for (uint256 i = 0; i < contador; i++) {
             donaciones[listaDonaciones[i].index].estado = estado;
-            DonacionHistorico memory nuevoHistorico = donacionesHistorico.push();
+            DonacionHistorico storage nuevoHistorico = donacionesHistorico.push();
             nuevoHistorico.idDonacion = listaDonaciones[i].donacion.idDonacion;
             nuevoHistorico.estado = estado;
             nuevoHistorico.timestamp = timestamp;
