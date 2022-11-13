@@ -102,7 +102,29 @@ contract("DonacionesContrato", () => {
 		);
 	});
 
-	// it('Modificar el estado de las donaciones a Reservado', () => {
+	it("Modificar el estado de las donaciones a Reservado", async () => {
+		const listaDonacionesId = [1, 3];
+		const result =
+			await this.donacionesContrato.confirmarReservaProductosEnDonaciones(
+				listaDonacionesId
+			);
+		const listaDonaciones =
+			await this.donacionesContrato.consultarTodasLasDonaciones();
+		assert.notEqual(result.receipt.transactionHash, null);
+		assert.equal(
+			listaDonaciones.find((x) => x.idDonacion == 1)?.estado,
+			"RESERVADO"
+		);
+	});
 
-	// });
+	it("Intentar cambiar donaciones reservadas a Reservado", async () => {
+		const listaDonacionesId = [1, 3];
+
+		await truffleAssert.reverts(
+			this.donacionesContrato.confirmarReservaProductosEnDonaciones(
+				listaDonacionesId
+			),
+			"Una de las donaciones ya se encuentra con estado RESERVADO"
+		);
+	});
 });

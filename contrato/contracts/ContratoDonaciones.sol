@@ -51,7 +51,14 @@ contract DonacionesContrato {
         uint index;
     }
 
+    struct DonacionHistorico {
+        uint idDonacion;
+        EstadoDonacion estado;
+        uint timestamp;
+    }
+
     Donacion[] private donaciones;
+    DonacionHistorico[] private donacionesHistorico;
     address private owner;
     mapping (EstadoDonacion => string) estados;
 
@@ -88,6 +95,7 @@ contract DonacionesContrato {
         chequearExistencia(request);
         uint timestamp = block.timestamp;
         Donacion storage nuevaDonacion = donaciones.push();
+        DonacionHistorico storage nuevaDonacionHistorico = donacionesHistorico.push();
 
         nuevaDonacion.idDonacion = request.idDonacion;
         nuevaDonacion.idOrganizacion = request.idOrganizacion;
@@ -97,6 +105,10 @@ contract DonacionesContrato {
         nuevaDonacion.idDonador = request.idDonador;
         nuevaDonacion.timestamp = timestamp;
         nuevaDonacion.estado = EstadoDonacion.PROCESADO;
+
+        nuevaDonacionHistorico.idDonacion = request.idDonacion;
+        nuevaDonacionHistorico.estado = EstadoDonacion.PROCESADO;
+        nuevaDonacionHistorico.timestamp = timestamp;
 
         for (uint256 i = 0; i < request.productosDonados.length; i++) {
             nuevaDonacion.productosDonados.push(request.productosDonados[i]);
@@ -155,20 +167,37 @@ contract DonacionesContrato {
         revert("No se encontro la donacion con el id ingresado");
     }
 
-    function confirmarProductosEnDonaciones(uint[] memory donacionesId) public {
+    function cambiarEstadoDeDonaciones(uint[] memory donacionesId, EstadoDonacion estado) private {
         DonacionConIndex[] memory listaDonaciones = new DonacionConIndex[](donaciones.length);
         uint contador = 0;
 
         for (uint256 i = 0; i < donacionesId.length; i++) {
             DonacionConIndex memory datos = traerDatosDeDonacion(donacionesId[i]);
+            if(uint8(datos.donacion.estado) == uint8(estado)){
+                revert(string.concat("Una de las donaciones ya se encuentra con estado ", estados[estado]));
+            }
+            if(uint8(datos.donacion.estado) + 1 != uint8(estado)){
+                revert("El estado a cambiar no corresponde con el ingresado");
+            }
+            datos.donacion.estado = estado;
             listaDonaciones[contador] = datos;
             contador++;
         }
 
         for (uint256 i = 0; i < contador; i++) {
-            if(donaciones[listaDonaciones[i].index].estado == EstadoDonacion.PROCESADO){
-                donaciones[listaDonaciones[i].index].estado = EstadoDonacion.RESERVADO;
-            }
+            donaciones[listaDonaciones[i].index].estado = estado;
         }
+    }
+
+    function confirmarReservaProductosEnDonaciones(uint[] memory donacionesId) public {
+        cambiarEstadoDeDonaciones(donacionesId, EstadoDonacion.RESERVADO);
+    }
+
+    function confirmarTrasladoProductosEnDonaciones(uint[] memory donacionesId) public {
+        cambiarEstadoDeDonaciones(donacionesId, EstadoDonacion.TRASLADO);
+    }
+
+    function confirmarEntregaProductosEnDonaciones(uint[] memory donacionesId) public {
+        cambiarEstadoDeDonaciones(donacionesId, EstadoDonacion.ENTREGADO);
     }
 }
