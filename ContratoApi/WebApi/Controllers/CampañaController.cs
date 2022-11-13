@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Donaciones.Contracts.DonacionesContrato.ContractDefinition;
 using Microsoft.AspNetCore.Mvc;
 using Servicio;
-using Servicio.Contrato.Campania_v1.Campania.ContractDefinition;
 
 namespace WebApi.Controllers
 {
