@@ -18,8 +18,8 @@ namespace Servicio
 
         public ServicioCampaña(IOptions<ContractData> options)
         {
-            _contrato = InstanciarContrato();
             _config = options.Value;
+            _contrato = InstanciarContrato();
         }
 
         private DonacionesContratoService InstanciarContrato()
