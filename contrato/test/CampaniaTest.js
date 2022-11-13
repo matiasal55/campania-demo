@@ -127,4 +127,55 @@ contract("DonacionesContrato", () => {
 			"Una de las donaciones ya se encuentra con estado RESERVADO"
 		);
 	});
+
+	it("Intentar cambiar estado Reservado a donaciones no existentes", async () => {
+		const listaDonacionesId = [5, 10];
+
+		await truffleAssert.reverts(
+			this.donacionesContrato.confirmarReservaProductosEnDonaciones(
+				listaDonacionesId
+			),
+			"No se encontro la donacion con el id ingresado"
+		);
+	});
+
+	it("Modificar el estado de la donación 1 a Traslado", async () => {
+		const listaDonacionesId = [1];
+		const result =
+			await this.donacionesContrato.confirmarTrasladoProductosEnDonaciones(
+				listaDonacionesId
+			);
+		const listaDonaciones =
+			await this.donacionesContrato.consultarTodasLasDonaciones();
+		assert.notEqual(result.receipt.transactionHash, null);
+		assert.equal(
+			listaDonaciones.find((x) => x.idDonacion == 1)?.estado,
+			"TRASLADO"
+		);
+	});
+
+	it("Intentar modificar el estado de la donación 2 a Traslado", async () => {
+		const listaDonacionesId = [2];
+		await truffleAssert.reverts(
+			this.donacionesContrato.confirmarTrasladoProductosEnDonaciones(
+				listaDonacionesId
+			),
+			"El estado a cambiar no corresponde con el ingresado"
+		);
+	});
+
+	it("Modificar el estado de la donación 1 a Entregado", async () => {
+		const listaDonacionesId = [1];
+		const result =
+			await this.donacionesContrato.confirmarEntregaProductosEnDonaciones(
+				listaDonacionesId
+			);
+		const listaDonaciones =
+			await this.donacionesContrato.consultarTodasLasDonaciones();
+		assert.notEqual(result.receipt.transactionHash, null);
+		assert.equal(
+			listaDonaciones.find((x) => x.idDonacion == 1)?.estado,
+			"ENTREGADO"
+		);
+	});
 });
