@@ -12,4 +12,12 @@
       <PackageReference Include="Nethereum.Web3" Version="4.9.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Contrato\Donaciones" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="Contrato\Campania_v1\Contrato.Contracts.csproj" />
+    </ItemGroup>
+
 </Project>

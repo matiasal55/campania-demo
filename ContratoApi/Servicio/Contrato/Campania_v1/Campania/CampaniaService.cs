@@ -1,18 +1,11 @@
-using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using System.Numerics;
-using Nethereum.Hex.HexTypes;
-using Nethereum.ABI.FunctionEncoding.Attributes;
-using Nethereum.Web3;
-using Nethereum.RPC.Eth.DTOs;
-using Nethereum.Contracts.CQS;
-using Nethereum.Contracts.ContractHandlers;
-using Nethereum.Contracts;
 using System.Threading;
-using Contrato.Contracts.Campania.ContractDefinition;
+using System.Threading.Tasks;
+using Nethereum.Contracts.ContractHandlers;
+using Nethereum.RPC.Eth.DTOs;
+using Servicio.Contrato.Campania_v1.Campania.ContractDefinition;
 
-namespace Contrato.Contracts.Campania
+namespace Servicio.Contrato.Campania_v1.Campania
 {
     public partial class CampaniaService
     {

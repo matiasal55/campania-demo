@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Contrato.Contracts.Campania;
-using Contrato.Contracts.Campania.ContractDefinition;
 using Microsoft.Extensions.Options;
 using Nethereum.Contracts;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
+using Servicio.Contrato.Campania_v1.Campania;
+using Servicio.Contrato.Campania_v1.Campania.ContractDefinition;
 using Servicio.Models;
 
 namespace Servicio

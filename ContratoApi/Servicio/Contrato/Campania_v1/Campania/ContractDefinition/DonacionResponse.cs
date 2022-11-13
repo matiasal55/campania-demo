@@ -1,11 +1,7 @@
-using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using System.Numerics;
-using Nethereum.Hex.HexTypes;
 using Nethereum.ABI.FunctionEncoding.Attributes;
 
-namespace Contrato.Contracts.Campania.ContractDefinition
+namespace Servicio.Contrato.Campania_v1.Campania.ContractDefinition
 {
     public partial class DonacionResponse : DonacionResponseBase { }
 

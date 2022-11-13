@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Contrato.Contracts.Campania.ContractDefinition;
 using Microsoft.AspNetCore.Mvc;
 using Servicio;
+using Servicio.Contrato.Campania_v1.Campania.ContractDefinition;
 
 namespace WebApi.Controllers
 {
