@@ -41,10 +41,15 @@
  * https://trufflesuite.com/docs/truffle/getting-started/using-the-truffle-dashboard/
  */
 
-// require('dotenv').config();
-// const { MNEMONIC, PROJECT_ID } = process.env;
-
+require("dotenv").config();
 const HDWalletProvider = require("@truffle/hdwallet-provider");
+const {
+	WALLET_KEY,
+	GOERLI_URL,
+	POLYGON_URL,
+	ETHERSCAN_APIKEY,
+	POLYGONSCAN_APIKEY,
+} = process.env;
 
 module.exports = {
 	/**
@@ -83,11 +88,7 @@ module.exports = {
 		// Useful for deploying to a public network.
 		// Note: It's important to wrap the provider as a function to ensure truffle uses a new provider every time.
 		goerli: {
-			provider: () =>
-				new HDWalletProvider(
-					"5e550a28083b1592efcece4d8cf6624f3ae335056fe9b7a3789e79557947766d",
-					`wss://eth-goerli.g.alchemy.com/v2/ao6rzLtwKaxRDgaT8TNMaKco9TfRsV-p`
-				),
+			provider: () => new HDWalletProvider(WALLET_KEY, GOERLI_URL),
 			network_id: 5, // Goerli's id
 			confirmations: 2, // # of confirmations to wait between deployments. (default: 0)
 			timeoutBlocks: 200, // # of blocks before a deployment times out  (minimum/default: 50)
@@ -95,17 +96,13 @@ module.exports = {
 			networkCheckTimeout: 1000000,
 		},
 		matic: {
-			provider: () =>
-				new HDWalletProvider(
-					"5e550a28083b1592efcece4d8cf6624f3ae335056fe9b7a3789e79557947766d",
-					`wss://polygon-mainnet.g.alchemy.com/v2/eD3FcLtgJOpTEAv4mRT1XmHQj7oDqCRe`
-				),
+			provider: () => new HDWalletProvider(WALLET_KEY, POLYGON_URL),
 			network_id: 137,
 			confirmations: 2,
 			timeoutBlocks: 200,
 			skipDryRun: true,
 			networkCheckTimeout: 1000000,
-			gasPrice: 35000000000,
+			gasPrice: 30000000000,
 			//gas: 28737151,
 		},
 		//
@@ -138,7 +135,8 @@ module.exports = {
 	},
 	plugins: ["truffle-plugin-verify"],
 	api_keys: {
-		etherscan: "3JPQJJKBKHE9D17J4FWQIW2CGAW5EUBTS3",
+		etherscan: ETHERSCAN_APIKEY,
+		polygonscan: POLYGONSCAN_APIKEY,
 	},
 
 	// Truffle DB is currently disabled by default; to enable it, change enabled:
