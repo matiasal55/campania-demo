@@ -170,6 +170,7 @@ contract DonacionesContrato {
     function cambiarEstadoDeDonaciones(uint[] memory donacionesId, EstadoDonacion estado) private {
         DonacionConIndex[] memory listaDonaciones = new DonacionConIndex[](donaciones.length);
         uint contador = 0;
+        uint timestamp = block.timestamp;
 
         for (uint256 i = 0; i < donacionesId.length; i++) {
             DonacionConIndex memory datos = traerDatosDeDonacion(donacionesId[i]);
@@ -180,12 +181,17 @@ contract DonacionesContrato {
                 revert("El estado a cambiar no corresponde con el ingresado");
             }
             datos.donacion.estado = estado;
+            datos.donacion.timestamp = timestamp;
             listaDonaciones[contador] = datos;
             contador++;
         }
 
         for (uint256 i = 0; i < contador; i++) {
             donaciones[listaDonaciones[i].index].estado = estado;
+            DonacionHistorico memory nuevoHistorico = donacionesHistorico.push();
+            nuevoHistorico.idDonacion = listaDonaciones[i].donacion.idDonacion;
+            nuevoHistorico.estado = estado;
+            nuevoHistorico.timestamp = timestamp;
         }
     }
 
