@@ -25,10 +25,10 @@ namespace Servicio
         private DonacionesContratoService InstanciarContrato()
         {
             var account = new Account(_config.WalletKey);
-            var web3 = new Web3(account, _config.GoerliUrl);
+            var web3 = new Web3(account, _config.LocalUrl);
          //   var web3 = new Web3(account, _config.PolygonUrl);
             web3.TransactionManager.UseLegacyAsDefault = true;
-            return new DonacionesContratoService(web3, _config.GoerliContractHash);
+            return new DonacionesContratoService(web3, _config.LocalContractHash);
           //  return new CampaniaService(web3, _config.PolygonContractHash);
         }
         
