@@ -183,7 +183,7 @@ contract DonacionesContrato {
         for (uint256 i = 0; i < donacionesId.length; i++) {
             DonacionConIndex memory datos = traerDatosDeDonacion(donacionesId[i]);
             if(uint8(datos.donacion.estado) == uint8(estado)){
-                revert(string.concat("Una de las donaciones ya se encuentra con estado ", estados[estado]));
+                revert(string(bytes.concat(bytes("Una de las donaciones ya se encuentra con estado "), bytes(estados[estado]))));
             }
             if(uint8(datos.donacion.estado) + 1 != uint8(estado)){
                 revert("El estado a cambiar no corresponde con el ingresado");
