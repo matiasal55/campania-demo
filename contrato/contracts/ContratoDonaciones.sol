@@ -2,17 +2,35 @@
 pragma solidity >=0.5.0 <0.9.0;
 
 contract DonacionesContrato {
-
-    struct ProductoDonado {
+    struct ProductoDonadoRequest {
+        uint idProducto;
         string descripcionProducto;
         uint cantidad;
+    }
+
+    struct ProductoDonado {
+        uint idProducto;
+        string descripcionProducto;
+        uint cantidad;
+        EstadoDonacion estado;
+        uint timestamp;
+    }
+
+    struct ProductoDonadoResponse {
+        uint idProducto;
+        string descripcionProducto;
+        uint cantidad;
+        string estado;
+        uint timestamp;
     }
 
     enum EstadoDonacion {
         PROCESADO,
         RESERVADO,
-        TRASLADO,
-        ENTREGADO
+        ENTRANSITO,
+        CONFIRMADOORG,
+        ENTREGADO,
+        CANCELADO
     }
     
     struct DonacionRequest {
@@ -22,7 +40,7 @@ contract DonacionesContrato {
         uint idCampania;
         string campania;
         uint idDonador;
-        ProductoDonado[] productosDonados;
+        ProductoDonadoRequest[] productosDonados;
     }
 
     struct Donacion {
@@ -34,16 +52,14 @@ contract DonacionesContrato {
         uint idDonador;
         ProductoDonado[] productosDonados;
         uint timestamp;
-        EstadoDonacion estado;
     }
 
     struct DonacionResponse {
         uint idDonacion;
         string organizacion;
         string campania;
-        ProductoDonado[] productosDonados;
+        ProductoDonadoResponse[] productosDonados;
         uint timestamp;
-        string estado;
     }
 
     struct DonacionConIndex {
@@ -53,6 +69,7 @@ contract DonacionesContrato {
 
     struct DonacionHistorico {
         uint idDonacion;
+        uint idProducto;
         EstadoDonacion estado;
         uint timestamp;
     }
@@ -75,12 +92,21 @@ contract DonacionesContrato {
         owner = msg.sender;
         estados[EstadoDonacion.PROCESADO] = "PROCESADO";
         estados[EstadoDonacion.RESERVADO] = "RESERVADO";
-        estados[EstadoDonacion.TRASLADO] = "TRASLADO";
+        estados[EstadoDonacion.ENTRANSITO] = "ENTRANSITO";
+        estados[EstadoDonacion.CONFIRMADOORG] = "CONFIRMADOORG";
         estados[EstadoDonacion.ENTREGADO] = "ENTREGADO";
+        estados[EstadoDonacion.CANCELADO] = "CANCELADO";
     }
 
     function crearResponse(Donacion memory donacion) private view returns (DonacionResponse memory response) {
-        response = DonacionResponse(donacion.idDonacion, donacion.organizacion, donacion.campania, donacion.productosDonados, donacion.timestamp, estados[donacion.estado]);
+        ProductoDonado[] memory listaOriginal = donacion.productosDonados;
+        ProductoDonadoResponse[] memory productosResponse = new ProductoDonadoResponse[](listaOriginal.length);
+        for (uint256 i = 0; i < listaOriginal.length; i++) {
+            ProductoDonadoResponse memory prodResponse = ProductoDonadoResponse(listaOriginal[i].idProducto, listaOriginal[i].descripcionProducto, listaOriginal[i].cantidad, estados[listaOriginal[i].estado], listaOriginal[i].timestamp);
+            productosResponse[i] = prodResponse;
+        }
+
+        response = DonacionResponse(donacion.idDonacion, donacion.organizacion, donacion.campania, productosResponse, donacion.timestamp);
     }
 
     function chequearExistencia(DonacionRequest memory donacion) private view {
@@ -95,7 +121,6 @@ contract DonacionesContrato {
         chequearExistencia(request);
         uint timestamp = block.timestamp;
         Donacion storage nuevaDonacion = donaciones.push();
-        DonacionHistorico storage nuevaDonacionHistorico = donacionesHistorico.push();
 
         nuevaDonacion.idDonacion = request.idDonacion;
         nuevaDonacion.idOrganizacion = request.idOrganizacion;
@@ -104,14 +129,20 @@ contract DonacionesContrato {
         nuevaDonacion.campania = request.campania;
         nuevaDonacion.idDonador = request.idDonador;
         nuevaDonacion.timestamp = timestamp;
-        nuevaDonacion.estado = EstadoDonacion.PROCESADO;
-
-        nuevaDonacionHistorico.idDonacion = request.idDonacion;
-        nuevaDonacionHistorico.estado = EstadoDonacion.PROCESADO;
-        nuevaDonacionHistorico.timestamp = timestamp;
 
         for (uint256 i = 0; i < request.productosDonados.length; i++) {
-            nuevaDonacion.productosDonados.push(request.productosDonados[i]);
+            ProductoDonadoRequest memory productoRequest = request.productosDonados[i];
+            uint idProducto = productoRequest.idProducto;
+            string memory descripcionProducto = productoRequest.descripcionProducto;
+            uint cantidad = productoRequest.cantidad;
+            ProductoDonado memory productoDonado = ProductoDonado(idProducto, descripcionProducto, cantidad, EstadoDonacion.PROCESADO, timestamp);
+            nuevaDonacion.productosDonados.push(productoDonado);
+
+            DonacionHistorico storage nuevaDonacionHistorico = donacionesHistorico.push();
+            nuevaDonacionHistorico.idDonacion = request.idDonacion;
+            nuevaDonacionHistorico.idProducto = request.productosDonados[i].idProducto;
+            nuevaDonacionHistorico.estado = EstadoDonacion.PROCESADO;
+            nuevaDonacionHistorico.timestamp = timestamp;
         }
 
         DonacionResponse memory response = crearResponse(nuevaDonacion);
@@ -140,10 +171,8 @@ contract DonacionesContrato {
                 return crearResponse(donaciones[i]);
             }
         }
-
         revert("No se encontro la donacion con el id ingresado");
     }
-
 
     function consultarDonacionesPorOrganizacion(uint idOrganizacion) public view returns (DonacionResponse[] memory) {
         Donacion[] memory listaFiltrada = new Donacion[](donaciones.length);
@@ -175,43 +204,43 @@ contract DonacionesContrato {
         revert("No se encontro la donacion con el id ingresado");
     }
 
-    function cambiarEstadoDeDonaciones(uint[] memory donacionesId, EstadoDonacion estado) private {
-        DonacionConIndex[] memory listaDonaciones = new DonacionConIndex[](donaciones.length);
-        uint contador = 0;
+    function cambiarEstadoDeDonacion(uint idDonacion, uint idProducto) public {
+        DonacionConIndex memory donacion = traerDatosDeDonacion(idDonacion);
+        ProductoDonado[] memory lista = donacion.donacion.productosDonados;
         uint timestamp = block.timestamp;
 
-        for (uint256 i = 0; i < donacionesId.length; i++) {
-            DonacionConIndex memory datos = traerDatosDeDonacion(donacionesId[i]);
-            if(uint8(datos.donacion.estado) == uint8(estado)){
-                revert(string(bytes.concat(bytes("Una de las donaciones ya se encuentra con estado "), bytes(estados[estado]))));
+        for (uint256 i = 0; i < lista.length; i++) {
+            if(lista[i].idProducto == idProducto){
+                donaciones[donacion.index].productosDonados[i].estado = EstadoDonacion(uint(lista[i].estado) + 1);
+
+                DonacionHistorico storage nuevaDonacionHistorico = donacionesHistorico.push();
+                nuevaDonacionHistorico.idProducto = lista[i].idProducto;
+                nuevaDonacionHistorico.estado = EstadoDonacion(uint(lista[i].estado) + 1);
+                nuevaDonacionHistorico.timestamp = timestamp;
+                return;
             }
-            if(uint8(datos.donacion.estado) + 1 != uint8(estado)){
-                revert("El estado a cambiar no corresponde con el ingresado");
-            }
-            datos.donacion.estado = estado;
-            datos.donacion.timestamp = timestamp;
-            listaDonaciones[contador] = datos;
-            contador++;
         }
 
-        for (uint256 i = 0; i < contador; i++) {
-            donaciones[listaDonaciones[i].index].estado = estado;
-            DonacionHistorico storage nuevoHistorico = donacionesHistorico.push();
-            nuevoHistorico.idDonacion = listaDonaciones[i].donacion.idDonacion;
-            nuevoHistorico.estado = estado;
-            nuevoHistorico.timestamp = timestamp;
+        revert("No se encontro el producto donado con el id recibido");
+    }
+
+    function cancelarDonacion(uint idDonacion, uint idProducto) public {
+        DonacionConIndex memory donacion = traerDatosDeDonacion(idDonacion);
+        ProductoDonado[] memory lista = donacion.donacion.productosDonados;
+        uint timestamp = block.timestamp;
+
+        for (uint256 i = 0; i < lista.length; i++) {
+            if(lista[i].idProducto == idProducto){
+                donaciones[donacion.index].productosDonados[i].estado = EstadoDonacion.CANCELADO;
+
+                DonacionHistorico storage nuevaDonacionHistorico = donacionesHistorico.push();
+                nuevaDonacionHistorico.idProducto = lista[i].idProducto;
+                nuevaDonacionHistorico.estado = EstadoDonacion.CANCELADO;
+                nuevaDonacionHistorico.timestamp = timestamp;
+                return;
+            }
         }
-    }
 
-    function confirmarReservaProductosEnDonaciones(uint[] memory donacionesId) public {
-        cambiarEstadoDeDonaciones(donacionesId, EstadoDonacion.RESERVADO);
-    }
-
-    function confirmarTrasladoProductosEnDonaciones(uint[] memory donacionesId) public {
-        cambiarEstadoDeDonaciones(donacionesId, EstadoDonacion.TRASLADO);
-    }
-
-    function confirmarEntregaProductosEnDonaciones(uint[] memory donacionesId) public {
-        cambiarEstadoDeDonaciones(donacionesId, EstadoDonacion.ENTREGADO);
+        revert("No se encontro el producto donado con el id recibido");
     }
 }

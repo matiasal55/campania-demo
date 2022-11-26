@@ -16,6 +16,7 @@ contract("DonacionesContrato", () => {
 			idDonador: 1,
 			productosDonados: [
 				{
+					idProducto: 1,
 					descripcionProducto: "Arroz",
 					cantidad: 5,
 				},
@@ -31,6 +32,7 @@ contract("DonacionesContrato", () => {
 			idDonador: 1,
 			productosDonados: [
 				{
+					idProducto: 2,
 					descripcionProducto: "Leche",
 					cantidad: 5,
 				},
@@ -46,6 +48,7 @@ contract("DonacionesContrato", () => {
 			idDonador: 1,
 			productosDonados: [
 				{
+					idProducto: 3,
 					descripcionProducto: "Curitas",
 					cantidad: 10,
 				},
@@ -57,7 +60,6 @@ contract("DonacionesContrato", () => {
 		assert.notEqual(result1.receipt.transactionHash, null);
 		assert.equal(donacionresult1.productosDonados.length, 1);
 		assert.equal(donacionresult1.organizacion, "Caritas");
-		assert.equal(donacionresult1.estado, "PROCESADO");
 
 		const result2 = await this.donacionesContrato.crearDonacion(donacion2);
 		const donacionresult2 = result2.logs[0].args.response;
@@ -103,79 +105,50 @@ contract("DonacionesContrato", () => {
 	});
 
 	it("Modificar el estado de las donaciones a Reservado", async () => {
-		const listaDonacionesId = [1, 3];
-		const result =
-			await this.donacionesContrato.confirmarReservaProductosEnDonaciones(
-				listaDonacionesId
-			);
-		const listaDonaciones =
-			await this.donacionesContrato.consultarTodasLasDonaciones();
+		const result = await this.donacionesContrato.cambiarEstadoDeDonacion(1, 1);
+		const donacion = await this.donacionesContrato.consultarDonacionesPorId(1);
 		assert.notEqual(result.receipt.transactionHash, null);
 		assert.equal(
-			listaDonaciones.find((x) => x.idDonacion == 1)?.estado,
+			donacion.productosDonados.find((x) => x.idProducto == 1)?.estado,
 			"RESERVADO"
 		);
 	});
 
-	it("Intentar cambiar donaciones reservadas a Reservado", async () => {
-		const listaDonacionesId = [1, 3];
-
+	it("Intentar cambiar el estado a una donacion no existente", async () => {
 		await truffleAssert.reverts(
-			this.donacionesContrato.confirmarReservaProductosEnDonaciones(
-				listaDonacionesId
-			),
-			"Una de las donaciones ya se encuentra con estado RESERVADO"
-		);
-	});
-
-	it("Intentar cambiar estado Reservado a donaciones no existentes", async () => {
-		const listaDonacionesId = [5, 10];
-
-		await truffleAssert.reverts(
-			this.donacionesContrato.confirmarReservaProductosEnDonaciones(
-				listaDonacionesId
-			),
+			this.donacionesContrato.cambiarEstadoDeDonacion(5, 1),
 			"No se encontro la donacion con el id ingresado"
 		);
 	});
 
-	it("Modificar el estado de la donación 1 a Traslado", async () => {
-		const listaDonacionesId = [1];
-		const result =
-			await this.donacionesContrato.confirmarTrasladoProductosEnDonaciones(
-				listaDonacionesId
-			);
-		const listaDonaciones =
-			await this.donacionesContrato.consultarTodasLasDonaciones();
-		assert.notEqual(result.receipt.transactionHash, null);
-		assert.equal(
-			listaDonaciones.find((x) => x.idDonacion == 1)?.estado,
-			"TRASLADO"
-		);
-	});
-
-	it("Intentar modificar el estado de la donación 2 a Traslado", async () => {
-		const listaDonacionesId = [2];
+	it("Intentar cambiar el estado a un producto no existente", async () => {
 		await truffleAssert.reverts(
-			this.donacionesContrato.confirmarTrasladoProductosEnDonaciones(
-				listaDonacionesId
-			),
-			"El estado a cambiar no corresponde con el ingresado"
+			this.donacionesContrato.cambiarEstadoDeDonacion(1, 10),
+			"No se encontro el producto donado con el id recibido"
 		);
 	});
 
-	it("Modificar el estado de la donación 1 a Entregado", async () => {
-		const listaDonacionesId = [1];
-		const result =
-			await this.donacionesContrato.confirmarEntregaProductosEnDonaciones(
-				listaDonacionesId
-			);
-		const listaDonaciones =
-			await this.donacionesContrato.consultarTodasLasDonaciones();
+	it("Cancelar un producto donado", async () => {
+		const result = await this.donacionesContrato.cancelarDonacion(2, 2);
+		const donacion = await this.donacionesContrato.consultarDonacionesPorId(2);
 		assert.notEqual(result.receipt.transactionHash, null);
 		assert.equal(
-			listaDonaciones.find((x) => x.idDonacion == 1)?.estado,
-			"ENTREGADO"
+			donacion.productosDonados.find((x) => x.idProducto == 2)?.estado,
+			"CANCELADO"
+		);
+	});
+
+	it("Intentar cancelar un producto donado de una donacion no existente", async () => {
+		await truffleAssert.reverts(
+			this.donacionesContrato.cancelarDonacion(5, 1),
+			"No se encontro la donacion con el id ingresado"
+		);
+	});
+
+	it("Intentar cancelar un producto donado no existente", async () => {
+		await truffleAssert.reverts(
+			this.donacionesContrato.cancelarDonacion(1, 10),
+			"No se encontro el producto donado con el id recibido"
 		);
 	});
 });
